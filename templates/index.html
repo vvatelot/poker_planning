@@ -1,0 +1,36 @@
+{% extends "_base.html" %}
+
+{% block content %}
+  <h2 class="subtitle">Create a new room to begin</h2>
+  <div class="box" x-data="home">
+    <form id="createRoomForm" action="/" method="post">
+      <div class="field">
+        <label class="label">Name of the room</label>
+        <div class="control">
+          <input name="room_name" class="input" type="text" placeholder="Name of the room" id="roomName" required />
+        </div>
+      </div>
+      <input type="hidden" name="user_id" :value="userID" />
+      <div class="field">
+        <div class="control">
+          <button class="button is-primary" type="submit">Let's Goooo</button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const roomId = "{{ room_id }}";
+    if (roomId) {
+      window.location.href = `/${roomId}`;
+    }
+
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("home", () => {
+        userID = localStorage.getItem("user_id");
+      });
+    });
+  </script>
+{% endblock %}

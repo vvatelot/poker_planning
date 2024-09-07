@@ -1,0 +1,27 @@
+{% extends "_base.html" %}
+
+{% block styles %}
+  <style>
+    .error-page {
+      text-align: center;
+      padding: 50px 0;
+    }
+    .error-page .title {
+      font-size: 3rem;
+    }
+    .error-page .subtitle {
+      font-size: 1.5rem;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="section error-page">
+    <div class="container">
+      <h1 class="title">404</h1>
+      <h2 class="subtitle">Woops ! It seems that this page does not exist...</h2>
+      <p>It seems that you followed an incorrect link or that the page has been deleted.</p>
+      <a href="/" class="button is-primary">Go back to the home page</a>
+    </div>
+  </section>
+{% endblock %}

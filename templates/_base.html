@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css" />
+    <script src="//unpkg.com/alpinejs" defer></script>
+    {% block styles %}
+    {% endblock %}
+  </head>
+  <body>
+    <section class="section">
+      <div class="container">
+        <h1 class="title"><a href="/">Poker Planning</a></h1>
+        {% block content %}
+        {% endblock %}
+      </div>
+    </section>
+    {% block scripts %}
+    {% endblock %}
+    <div x-data="base">
+      <div class="modal" :class="{ 'is-active': !userName }">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+          <header class="modal-card-head">
+            <p class="modal-card-title">Your name</p>
+          </header>
+          <section class="modal-card-body">
+            <form @submit.prevent="saveUserName()">
+              <div class="field is-grouped">
+                <p class="control is-expanded">
+                  <input class="input" type="text" required x-model="userNameField" />
+                </p>
+                <p class="control">
+                  <input type="submit" class="button is-info" />
+                </p>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("base", () => {
+          return {
+            userID: "",
+            userName: "",
+            userNameField: "",
+
+            async init() {
+              if (localStorage.getItem("user_id")) {
+                this.userID = localStorage.getItem("user_id");
+              } else {
+                this.userID = Math.random().toString(36).substring(2);
+                localStorage.setItem("user_id", this.userID);
+              }
+              document.cookie = `user_id=${this.userID}; SameSite=Lax; Secure`;
+              const userName = localStorage.getItem("user_name");
+              if (userName) {
+                this.userName = userName;
+              }
+            },
+
+            async saveUserName() {
+              localStorage.setItem("user_name", this.userNameField);
+              this.userName = this.userNameField;
+              this.$dispatch("user-changed", { name: this.userName, id: this.userID });
+            },
+          };
+        });
+      });
+    </script>
+  </body>
+</html>

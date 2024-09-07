@@ -1,0 +1,18 @@
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "printWidth": 127,
+  "plugins": [
+    "prettier-plugin-jinja-template"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "*.html"
+      ],
+      "options": {
+        "parser": "jinja-template"
+      }
+    }
+  ]
+}

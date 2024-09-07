@@ -1,0 +1,6 @@
+*
+!app
+!data
+!templates
+!pyproject.toml
+!uv.lock
