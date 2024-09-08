@@ -89,7 +89,7 @@
               name: localStorage.getItem("user_name") || null,
               id: localStorage.getItem("user_id") || null,
             };
-            this.ws = new WebSocket(`{{ websocket_protocol }}://{{ host }}/room/${this.roomId}/users/${this.user.id}`);
+            this.ws = new WebSocket(`{{ websocket_host }}/room/${this.roomId}/users/${this.user.id}`);
             await new Promise((resolve) => {
               this.ws.onopen = resolve;
             });

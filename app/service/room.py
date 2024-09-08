@@ -52,10 +52,12 @@ async def handle_vote_event(
     manager: ConnectionManager, room_id: str, user_id: str, vote: int
 ):
     room = await get_room(room_id)
-
-    user = next(u for u in room.users if u.id == user_id)
-    user.vote.value = vote
-    user.vote.ready = True
+    try:
+        user = next(u for u in room.users if u.id == user_id)
+        user.vote.value = vote
+        user.vote.ready = True
+    except StopIteration:
+        print(f"user not found {user_id}", [u for u in room.users])
 
     await save_room(room_id, room)
 

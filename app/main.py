@@ -108,13 +108,12 @@ async def room_detail(
         request=request,
         name="room.html",
         context={
-            "host": Settings().host,
             "room_id": room_id,
             "title": f"Poker Planning - {room.name}",
             "name": room.name,
             "users": [user.model_dump() for user in room.users],
             "is_owner": room.owner == user_id,
-            "websocket_protocol": Settings().websocket_protocol,
+            "websocket_host": Settings().websocket_host,
         },
     )
 
@@ -141,7 +140,5 @@ async def websocket_users(websocket: WebSocket, room_id: str, user_id: str):
                 case _:
                     pass
 
-            # await manager.send_personal_message(f"You wrote: {data}", websocket)
-            # await manager.broadcast(f"Client #{room_id} says: {data}")
     except WebSocketDisconnect:
         await handle_user_leave_event(manager, room_id, user_id, websocket)

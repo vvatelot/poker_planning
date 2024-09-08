@@ -2,10 +2,12 @@ services:
   app:
     build: .
     volumes:
-      - ./data:/app/data
+      - data:/app/data
     environment:
-      HOST: ${HOST:-localhost:8000}
       GIPHY_API_KEY: ${GIPHY_API_KEY}
-      WEBSOCKET_PROTOCOL: ${WEBSOCKET_PROTOCOL:-ws}
+      WEBSOCKET_HOST: ${WEBSOCKET_HOST:-ws://localhost:8000}
     ports:
       - "${PORT:-8000}:8000"
+
+volumes:
+  data:
