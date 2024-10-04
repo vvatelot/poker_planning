@@ -23,9 +23,7 @@ This is a simple poker planning tool for remote teams. It is a web application t
 The application uses environment variables to configure the settings. You can set the following variables:
 
 - `GIPHY_API_KEY`: The Giphy API key to fetch gifs. If not provided, the application will not fetch gifs.
-- `APP_HOST`: The host where the application will run. Default is `localhost:8000`.
-- `APP_PORT`: The port where the application will run. Default is `8000`.
-- `APP_SCHEME`: The scheme used by the application. Default is `http`.
+- `APP_URL`: The URL where the application will run. Default is `http://localhost:8000`.
 - `MERCURE_HOST`: The host where the Mercure hub will run. Default is `http://mercure:80/.well-known/mercure`.
 - `MERCURE_HOST_FRONTEND`: The host where the Mercure hub will run, view from the frontend. Default is `http://localhost:3000/.well-known/mercure`.
 - `MERCURE_PORT`: The port where the Mercure hub will run. Default is `3000`

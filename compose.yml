@@ -20,7 +20,7 @@ services:
       SERVER_NAME: ':80'
       MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_PUBLISHER_JWT_KEY:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_SUBSCRIBER_JWT_KEY:-!ChangeThisMercureHubJWTSecretKey!}
-      MERCURE_EXTRA_DIRECTIVES: "cors_origins ${APP_SCHEME:-http}://${APP_HOST:-localhost}:${APP_PORT:-8000}"
+      MERCURE_EXTRA_DIRECTIVES: "cors_origins ${APP_URL:-http://localhost:8000}"
     healthcheck:
       test: ["CMD", "curl", "-f", "https://localhost/healthz"]
       timeout: 5s
