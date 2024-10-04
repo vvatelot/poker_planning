@@ -1,0 +1,46 @@
+{
+  "name": "Poker planning dev container",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "features": {
+    "ghcr.io/va-h/devcontainers-features/uv": {
+      "version": "latest"
+    },
+    "ghcr.io/audacioustux/devcontainers/taskfile": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "installDockerBuildx": true,
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    }
+  },
+  "containerEnv": {
+    "UV_LINK_MODE": "copy"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "-ms-python.autopep8",
+        "adrianwilczynski.alpine-js-intellisense",
+        "adrianwilczynski.alpine-js-intellisense",
+        "bierner.markdown-emoji",
+        "charliermarsh.ruff",
+        "Codeium.codeium",
+        "esbenp.prettier-vscode",
+        "github.vscode-github-actions",
+        "Gruntfuggly.todo-tree",
+        "mhutchie.git-graph",
+        "ms-azuretools.vscode-docker",
+        "ms-python.mypy-type-checker",
+        "ms-python.python",
+        "Perkovec.emoji",
+        "samuelcolvin.jinjahtml",
+        "tamasfe.even-better-toml",
+        "ue.alphabetical-sorter",
+        "yzhang.markdown-all-in-one"
+      ]
+    }
+  }
+}

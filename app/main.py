@@ -1,15 +1,15 @@
 import uuid
 from typing import Annotated
 
+import jwt
 from fastapi import (
+    Body,
     Cookie,
     Depends,
     FastAPI,
     Form,
     HTTPException,
     Request,
-    WebSocket,
-    WebSocketDisconnect,
     status,
 )
 from fastapi.responses import JSONResponse
@@ -20,6 +20,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import Settings
 from app.config.template import get_templates
 from app.models import Room, User
+from app.service.publisher import get_publisher
 from app.service.room import (
     handle_reset_votes_event,
     handle_reveal_vote_event,
@@ -27,7 +28,6 @@ from app.service.room import (
     handle_user_leave_event,
     handle_vote_event,
 )
-from app.ws import manager
 
 app = FastAPI(debug=False)
 
@@ -89,7 +89,7 @@ async def create_room(
 
 
 @app.get("/{room_id}")
-async def room_detail(
+async def get_room_detail(
     request: Request,
     room_id: str,
     templates: Annotated[Jinja2Templates, Depends(get_templates)],
@@ -104,41 +104,82 @@ async def room_detail(
             detail="Room not found",
         )
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         request=request,
         name="room.html",
         context={
             "room_id": room_id,
             "title": f"Poker Planning - {room.name}",
             "name": room.name,
-            "users": [user.model_dump() for user in room.users],
+            "users": [user.get_user(ready=False) for user in room.users],
             "is_owner": room.owner == user_id,
-            "websocket_host": Settings().websocket_host,
+            "mercure_host": Settings().mercure_host_frontend,
         },
     )
 
+    response.set_cookie(
+        key="mercureAuthorization",
+        value=jwt.encode(
+            payload={"mercure": {"subscribe": [f"room/{room_id}"]}},
+            key=Settings().mercure_subscriber_jwt_key,
+        ),
+        path="/.well-known/mercure",
+        secure=True,
+    )
 
-@app.websocket("/room/{room_id}/users/{user_id}")
-async def websocket_users(websocket: WebSocket, room_id: str, user_id: str):
-    await manager.connect(websocket)
+    return response
 
-    try:
-        while True:
-            data = await websocket.receive_json()
 
-            match data["event"]:
-                case "user":
-                    await handle_user_event(
-                        manager, room_id, User.model_validate(data["user"])
-                    )
-                case "vote":
-                    await handle_vote_event(manager, room_id, user_id, data["vote"])
-                case "reset_votes":
-                    await handle_reset_votes_event(manager, room_id, user_id)
-                case "reveal_votes":
-                    await handle_reveal_vote_event(manager, room_id, user_id)
-                case _:
-                    pass
+@app.post("/room/{room_id}/votes")
+async def add_a_new_vote(
+    room_id: str,
+    vote: int,
+    user_id: Annotated[str, Cookie()],
+):
+    publisher = get_publisher(room_id)
 
-    except WebSocketDisconnect:
-        await handle_user_leave_event(manager, room_id, user_id, websocket)
+    await handle_vote_event(
+        publisher=publisher, room_id=room_id, user_id=user_id, vote=vote
+    )
+
+
+@app.post("/room/{room_id}/actions")
+async def make_an_action(
+    room_id: str,
+    action: str,
+    user_id: Annotated[str, Cookie()],
+):
+    publisher = get_publisher(room_id)
+
+    if action == "reset":
+        await handle_reset_votes_event(
+            publisher=publisher, room_id=room_id, user_id=user_id
+        )
+
+    if action == "show":
+        await handle_reveal_vote_event(
+            publisher=publisher, room_id=room_id, user_id=user_id
+        )
+
+
+@app.delete("/room/{room_id}/users")
+async def remove_user(
+    room_id: str,
+    user_id: Annotated[str, Cookie()],
+):
+    publisher = get_publisher(room_id)
+
+    await handle_user_leave_event(publisher=publisher, room_id=room_id, user_id=user_id)
+
+
+@app.post("/room/{room_id}/users")
+async def add_user(
+    room_id: str,
+    user_name: Annotated[str, Body()],
+    user_id: Annotated[str, Cookie()],
+):
+    publisher = get_publisher(room_id)
+
+    await handle_user_event(
+        publisher=publisher, room_id=room_id, user=User(name=user_name, id=user_id)
+    )

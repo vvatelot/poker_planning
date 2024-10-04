@@ -18,6 +18,7 @@ class User(BaseModel):
             return self.model_dump()
 
         self.vote.value = None
+
         return self.model_dump()
 
 

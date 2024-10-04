@@ -1,0 +1,20 @@
+version: "3"
+
+tasks:
+  start-server:
+    desc: Start application server
+    internal: true
+    cmds:
+      - uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug --reload
+
+  start-mercure:
+    desc: Start mercure hub locally
+    internal: true
+    cmds:
+      - docker compose up mercure --remove-orphans
+
+  dev-start:
+    desc: Start mercure and app server
+    deps: [start-server, start-mercure]
+    cmds:
+      - echo "Mercure started at http://localhost:3000/.well-known/mercure"

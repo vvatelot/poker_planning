@@ -4,46 +4,37 @@
   <div x-data="room" @user-changed.window="handleUserChange(event)">
     <h2 class="subtitle">{{ name }}</h2>
 
-    {% if is_owner %}
-      <div class="buttons">
-        <button class="button is-primary" id="resetButton" @click="resetVotes">Reset</button>
-        <button class="button is-info" id="revealButton" @click="revealVotes">Reveal votes</button>
-      </div>
-    {% endif %}
+    <div class="buttons">
+      <button class="button is-primary" id="resetButton" @click="resetVotes">Reset</button>
+      <button class="button is-info" id="revealButton" @click="revealVotes">Reveal votes</button>
+    </div>
 
+    <div class="content">
+      <h2 class="subtitle">Pick your card</h2>
+      <div class="select is-rounded">
+        <select x-model="myVote" @change="selectCard()">
+          <option selected value="0">Select an option</option>
+          <template x-for="i in 10">
+            <option x-text="fibonacci(i)" :value="i">Rounded dropdown</option>
+          </template>
+        </select>
+      </div>
+    </div>
     <div class="fixed-grid has-1-cols-mobile has-4-cols-desktop">
       <div class="grid">
-        <template x-for="user in users">
+        <template x-for="u in users">
           <div class="cell has-text-centered">
             <div class="card">
               <div class="card-content">
-                <p class="title" x-text="user.name"></p>
-                <button
-                  class="button is-large"
-                  x-text="user.vote.value || '?'"
-                  :class="{'is-success': user.vote.ready}"
-                ></button>
+                <p class="title" x-text="u.name" :class="{'has-text-primary': u.id == user.id}"></p>
+                <button class="button is-large" x-text="u.vote.value || '?'" :class="{'is-success': u.vote.ready}"></button>
               </div>
             </div>
           </div>
         </template>
       </div>
     </div>
-    <div class="content">
-      <h2 class="subtitle">Pick your card</h2>
-      <div class="columns">
-        <template x-for="i in 10">
-          <div class="column">
-            <button
-              class="button is-large"
-              @click="selectCard(i)"
-              x-text="fibonacci(i)"
-              :class="{'is-info': myVote == i}"
-            ></button>
-          </div>
-        </template>
-      </div>
-    </div>
+
     <div id="tada"></div>
     <div class="fixed-grid has-1-cols-mobile has-4-cols-desktop">
       <div class="grid">
@@ -70,6 +61,27 @@
 {% block scripts %}
   <script src="//cdn.jsdelivr.net/npm/party-js@latest/bundle/party.min.js"></script>
   <script>
+    const url = new URL(`{{ mercure_host }}`);
+    url.searchParams.append("topic", `room/{{ room_id }}`);
+
+    const eventSource = new EventSource(url, {
+      withCredentials: true,
+    });
+
+    eventSource.addEventListener("message", (e) => {
+      window.dispatchEvent(new CustomEvent("hub_message", { detail: e.data }));
+    });
+
+    window.addEventListener("beforeunload", function (e) {
+      fetch(`/room/{{ room_id }}/users`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      eventSource.close();
+    });
+
     document.addEventListener("alpine:init", () => {
       Alpine.data("room", () => {
         return {
@@ -81,6 +93,7 @@
           averageVote: null,
           gif_url: null,
           gif_tag: null,
+          eventSource: eventSource,
 
           async init() {
             this.users = JSON.parse(`{{ users|tojson|safe }}`);
@@ -89,13 +102,9 @@
               name: localStorage.getItem("user_name") || null,
               id: localStorage.getItem("user_id") || null,
             };
-            this.ws = new WebSocket(`{{ websocket_host }}/room/${this.roomId}/users/${this.user.id}`);
-            await new Promise((resolve) => {
-              this.ws.onopen = resolve;
-            });
 
-            this.ws.onmessage = (ev) => {
-              const { event, data } = JSON.parse(ev.data);
+            window.addEventListener("hub_message", (e) => {
+              const { event, data } = JSON.parse(e.detail);
               if (event === "reveal_votes") {
                 this.users = data.users;
                 this.averageVote = data.average;
@@ -118,14 +127,21 @@
               if (event === "reset_votes") {
                 this.myVote = null;
               }
-            };
+            });
 
+            await new Promise((resolve) => setTimeout(resolve, 500));
             await this.notifyUserChange();
           },
 
           async notifyUserChange() {
             if (this.user.name !== null && this.user.id !== null) {
-              this.ws.send(JSON.stringify({ event: "user", user: this.user }));
+              fetch(`/room/{{ room_id }}/users`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(this.user.name),
+              });
             }
           },
 
@@ -136,22 +152,31 @@
             return (await this.fibonacci(i - 1)) + (await this.fibonacci(i - 2));
           },
 
-          async selectCard(vote) {
-            this.myVote = vote;
-            this.ws.send(
-              JSON.stringify({
-                event: "vote",
-                vote: await this.fibonacci(vote),
-              }),
-            );
+          async selectCard() {
+            fetch(`/room/{{ room_id }}/votes?vote=${await this.fibonacci(this.myVote)}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
           },
 
           async resetVotes() {
-            this.ws.send(JSON.stringify({ event: "reset_votes", user_id: this.user.id }));
+            fetch(`/room/{{ room_id }}/actions?action=reset`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
           },
 
           async revealVotes() {
-            this.ws.send(JSON.stringify({ event: "reveal_votes", user_id: this.user.id }));
+            fetch(`/room/{{ room_id }}/actions?action=show`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
           },
 
           async handleUserChange(event) {

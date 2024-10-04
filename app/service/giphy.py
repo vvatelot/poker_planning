@@ -9,7 +9,7 @@ async def get_gif_by_tag(tag: str) -> str:
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://api.giphy.com/v1/gifs/random",
+                f"{Settings().giphy_api_base_url}/random",
                 params={
                     "api_key": Settings().giphy_api_key,
                     "tag": tag,

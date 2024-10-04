@@ -6,6 +6,4 @@ WORKDIR /app
 COPY . .
 RUN uv sync --frozen
 RUN uv add granian
-
-# CMD ["uv", "run", "uvicorn",  "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "debug"]
 CMD ["uv", "run", "granian", "--interface", "asgi", "app.main:app","--host", "0.0.0.0",  "--port", "8000", "--workers", "1"]
