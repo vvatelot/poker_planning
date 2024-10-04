@@ -5,6 +5,7 @@ services:
       - app_data:/app/data
     environment:
       GIPHY_API_KEY: ${GIPHY_API_KEY}
+      APP_DOMAIN: ${APP_URL:-localhost:8000}
       MERCURE_HOST: ${MERCURE_HOST:-http://mercure:80/.well-known/mercure}
       MERCURE_HOST_FRONTEND: ${MERCURE_HOST_FRONTEND:-http://localhost:3000/.well-known/mercure}
       MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_PUBLISHER_JWT_KEY:-!ChangeThisMercureHubJWTSecretKey!}

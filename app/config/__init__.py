@@ -10,3 +10,4 @@ class Settings(BaseSettings):
     mercure_host_frontend: str = "http://localhost:3000/.well-known/mercure"
     mercure_publisher_jwt_key: str = "!ChangeThisMercureHubJWTSecretKey!"
     mercure_subscriber_jwt_key: str = "!ChangeThisMercureHubJWTSecretKey!"
+    app_domain: str = "localhost:8000"

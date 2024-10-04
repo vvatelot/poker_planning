@@ -125,6 +125,7 @@ async def get_room_detail(
         ),
         path="/.well-known/mercure",
         secure=True,
+        domain=Settings().app_domain,
     )
 
     return response
